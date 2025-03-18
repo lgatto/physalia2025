@@ -46,3 +46,7 @@ f <- proteomics(full.names = TRUE)[4]
 
 ## library("pRolocdata")
 ## library("scpdata")
+
+## Convertion to mzML
+## - msconvert (from proteowizard)
+## - https://github.com/compomics/ThermoRawFileParser

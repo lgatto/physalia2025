@@ -230,3 +230,45 @@ min(intensity(sp_sciex[1]))
 ## 3. How many scans? How many scans per file? How many MS1 and MS2 scan? How
 ##    many MS1 and MS2 scan per file?
 ## 4. Visualise the chromatograms of these 3 files (ideally on one figure).
+
+library(rpx)
+
+px2 <- PXDataset("PXD022816")
+pxref(px2)
+
+grep("mzML", pxfiles(px2))[1:3]
+
+f <- pxget(px2, grep("mzML", pxfiles(px2))[1:3])
+
+## f <- dir("data", full.names = TRUE)
+
+library(Spectra)
+
+sp <- Spectra(f)
+
+length(sp)
+
+table(dataOrigin(sp))
+
+table(msLevel(sp))
+
+table(dataOrigin(sp), msLevel(sp))
+
+library(tidyverse)
+
+filterMsLevel(sp, 1L)|>
+    spectraData() |>
+    as_tibble() |>
+    ggplot(aes(x = rtime,
+               y = totIonCurrent,
+               colour = basename(dataOrigin))) +
+    geom_line()
+
+
+filterMsLevel(sp, 1L) |>
+    spectraData() |>
+    as_tibble() |>
+    ggplot(aes(x = rtime,
+               y = totIonCurrent)) +
+    geom_line() +
+    facet_wrap(~ basename(dataOrigin))
