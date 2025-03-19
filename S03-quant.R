@@ -245,3 +245,102 @@ boxplot(assay(cptac[[2]]))
 boxplot(assay(cptac[[3]]))
 
 ## Use median to aggregation peptides into protein values
+
+cptac <- aggregateFeatures(
+    cptac,
+    i = "lognorm_peptides",
+    name = "proteins_med",
+    fcol = "Leading.razor.protein",
+    fun = colMedians,
+    na.rm = TRUE)
+
+
+prcomp(t(assay(cptac[[4]])))
+
+library(factoextra)
+
+cptac[[4]] |>
+    filterNA() |>
+    assay() |>
+    t() |>
+    prcomp(scale = TRUE, center = TRUE) |>
+    fviz_pca_ind(habillage = cptac$condition)
+
+cptac[[4]] |>
+    impute(method = "knn") |>
+    assay() |>
+    t() |>
+    prcomp(scale = TRUE, center = TRUE) |>
+    fviz_pca_ind(habillage = cptac$condition)
+
+cptac[[4]] |>
+    impute(method = "zero") |>
+    assay() |>
+    t() |>
+    prcomp(scale = TRUE, center = TRUE) |>
+    fviz_pca_ind(habillage = cptac$condition)
+
+nNA(cptac[[4]])
+
+longFormat(cptac["P02787ups|TRFE_HUMAN_UPS", ,
+                 c("lognorm_peptides", "proteins_med")]) |>
+    as_tibble() |>
+    mutate(condition = ifelse(grepl("A", colname), "A", "B")) |>
+    ggplot(aes(
+        x = colname,
+        y = value,
+        colour = rowname,
+        shape = condition)) +
+    geom_point(size = 3) +
+    geom_line(aes(group = rowname)) +
+    facet_grid(~ assay)
+
+
+cptac["P02787ups|TRFE_HUMAN_UPS", ,
+      c("lognorm_peptides", "proteins_med")] |>
+    longFormat()
+
+
+tmp <- impute(cptac, i = 3,
+              method = "knn") |>
+    aggregateFeatures(
+        i = "imputedAssay",
+        name = "proteins_med2",
+        fcol = "Leading.razor.protein",
+        fun = colMedians,
+        na.rm = TRUE)
+
+longFormat(tmp["P02787ups|TRFE_HUMAN_UPS", ,
+               c("imputedAssay", "proteins_med2")]) |>
+    as_tibble() |>
+    mutate(condition = ifelse(grepl("A", colname), "A", "B")) |>
+    ggplot(aes(
+        x = colname,
+        y = value,
+        colour = rowname,
+        shape = condition)) +
+    geom_point(size = 3) +
+    geom_line(aes(group = rowname)) +
+    facet_grid(~ assay)
+
+
+plot(cptac)
+
+
+normalize(cptac, "log_peptides",
+          name = "logquantiles_peptides",
+          method = "quantiles.robust") |>
+    aggregateFeatures(
+        "logquantiles_peptides",
+        name = "proteins_med2",
+        fcol = "Leading.razor.protein",
+        fun = colMedians,
+        na.rm = TRUE) |>
+    plot()
+
+## Statistical analysis
+
+prots <- getWithColData(cptac, "proteins_med")
+prots
+
+colData(prots)
