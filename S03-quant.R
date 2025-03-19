@@ -210,3 +210,38 @@ colData(cptac) <- colData(cptac_se)
 ## Ex: Using the filterFeatures() function, filter out the reverse and
 ## contaminant hits, and also retain those that have a posterior error
 ## probability smaller than 0.05.
+
+cptac <-
+    cptac |>
+    filterFeatures(~ Reverse != "+") |>
+    filterFeatures(~ Potential.contaminant != "+") |>
+    filterFeatures(~ PEP < 0.05)
+
+cptac
+
+cptac <- logTransform(cptac,
+                      i = "peptides",
+                      name = "log_peptides")
+
+cptac
+
+## Ex: Use the normalize() method to normalise the data. The syntax is the same
+## as logTransform(). Use the "center.median" method.
+
+cptac <- cptac |>
+    normalize(i = "log_peptides",
+              name = "lognorm_peptides",
+              method = "center.median")
+
+
+
+library(limma)
+
+plotDensities(assay(cptac[[1]]))
+plotDensities(assay(cptac[[2]]))
+plotDensities(assay(cptac[[3]]))
+
+boxplot(assay(cptac[[2]]))
+boxplot(assay(cptac[[3]]))
+
+## Use median to aggregation peptides into protein values
