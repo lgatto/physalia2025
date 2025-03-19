@@ -133,7 +133,7 @@ tibble(id = 1:length(cc),
        nc = ncols(cc)) |>
     filter(nr > 4) |>
     arrange(desc(nc))
-    
+
 
 cx <- connectedComponents(cc, 1124)
 
@@ -295,3 +295,62 @@ plotSpectraMirror(sp_k2[3], sp_k2[5])
 filterIntensity(sp_k, 1e3) |>
     plotSpectra(labels = addFragments,
                 labelCol = "red")
+
+## Summary exercise
+
+library(rpx)
+px <- PXDataset("PXD022816")
+
+(mzmls <- pxget(px, grep("mzML", pxfiles(px))[1:3]))
+
+library(Spectra)
+sp <- Spectra(mzmls)
+
+## See S01-raw.R
+
+(mzids <- pxget(px, grep("mzID", pxfiles(px))[1:3]))
+
+## Check the quality of the identification data by comparing the density of the
+## decoy and target PSMs id scores for each file
+
+library(PSMatch)
+
+id <- PSM(mzids)
+
+id
+
+table(basename(dataOrigin(filterMsLevel(sp, 2))))
+
+names(id)
+
+table(id$idFile)
+
+table(basename(dataOrigin(filterMsLevel(sp, 2)))) / table(id$idFile)
+
+
+ggplot(id,
+       aes(x = MetaMorpheus.score,
+           colour = isDecoy)) +
+    geom_density() +
+    facet_wrap(~ spectrumFile)
+
+max(id$PSM.level.q.value)
+
+table(id$isDecoy)
+
+
+id_filtered <- filterPSMs(id)
+
+
+i <- grep("scan=12040", sp$spectrumId)
+
+sp$spectrumId[i]
+dataOrigin(sp)[i]
+
+
+paste(sub("^.+_QEP", "QEP", basename(dataOrigin(sp)[i])),
+      sub("^.+scan=", "", sp$spectrumId[i]),
+      sep = "::")
+
+head(id$spectrumID)
+head(id$spectrumFile)
