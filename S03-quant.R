@@ -184,3 +184,29 @@ rowData(cptac_se) |>
     ggplot(aes(x = PEP,
                colour = Reverse)) +
     geom_density()
+
+max(rowData(cptac_se)$PEP)
+
+prots <- rowData(cptac_se)$Proteins
+names(prots) <- rowData(cptac_se)$Sequence
+
+head(prots)
+
+
+## Connected components from quant data
+library(PSMatch)
+adj <- makeAdjacencyMatrix(prots, split = ";")
+dim(adj)
+cc <- ConnectedComponents(adj)
+cc
+
+## Create a QFeatures object
+
+(cptac <- QFeatures(list(peptides = cptac_se)))
+
+colData(cptac) <- colData(cptac_se)
+
+
+## Ex: Using the filterFeatures() function, filter out the reverse and
+## contaminant hits, and also retain those that have a posterior error
+## probability smaller than 0.05.
